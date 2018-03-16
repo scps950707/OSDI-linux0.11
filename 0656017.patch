@@ -1,0 +1,194 @@
+diff --git a/linux-0.11/Makefile b/linux-0.11/Makefile
+index ddb5be1..1629240 100644
+--- a/linux-0.11/Makefile
++++ b/linux-0.11/Makefile
+@@ -34,11 +34,11 @@ MATH	=kernel/math/math.a
+ LIBS	=lib/lib.a
+ 
+ .c.s:
+-@$(CC) $(CFLAGS) -S -o $*.s $<
++	@$(CC) $(CFLAGS) -S -o $*.s $<
+ .s.o:
+-@$(AS)  -o $*.o $<
++	@$(AS)  -o $*.o $<
+ .c.o:
+-@$(CC) $(CFLAGS) -c -o $*.o $<
++	@$(CC) $(CFLAGS) -c -o $*.o $<
+ 
+ all:	Image	
+ 
+diff --git a/linux-0.11/fs/buffer.c b/linux-0.11/fs/buffer.c
+index 47c5a4d..89918e8 100644
+--- a/linux-0.11/fs/buffer.c
++++ b/linux-0.11/fs/buffer.c
+@@ -84,7 +84,7 @@ int sync_dev(int dev)
+ 	return 0;
+ }
+ 
+-void inline invalidate_buffers(int dev)
++static void inline invalidate_buffers(int dev)
+ {
+ 	int i;
+ 	struct buffer_head * bh;
+diff --git a/linux-0.11/include/linux/sched.h b/linux-0.11/include/linux/sched.h
+index 6b6e243..6a0c3da 100644
+--- a/linux-0.11/include/linux/sched.h
++++ b/linux-0.11/include/linux/sched.h
+@@ -1,7 +1,7 @@
+ #ifndef _SCHED_H
+ #define _SCHED_H
+ 
+-#define NR_TASKS 0
++#define NR_TASKS 32
+ #define HZ 100
+ 
+ #define FIRST_TASK task[0]
+diff --git a/linux-0.11/include/string.h b/linux-0.11/include/string.h
+index 259d3ce..fbb3691 100644
+--- a/linux-0.11/include/string.h
++++ b/linux-0.11/include/string.h
+@@ -24,7 +24,7 @@ extern char * strerror(int errno);
+  *		(C) 1991 Linus Torvalds
+  */
+  
+-extern inline char * strcpy(char * dest,const char *src)
++static inline char * strcpy(char * dest,const char *src)
+ {
+ __asm__("cld\n"
+ 	"1:\tlodsb\n\t"
+@@ -51,7 +51,7 @@ __asm__("cld\n"
+ return dest;
+ }
+ 
+-extern inline char * strcat(char * dest,const char * src)
++static inline char * strcat(char * dest,const char * src)
+ {
+ __asm__("cld\n\t"
+ 	"repne\n\t"
+@@ -85,7 +85,7 @@ __asm__("cld\n\t"
+ return dest;
+ }
+ 
+-extern inline int strcmp(const char * cs,const char * ct)
++static inline int strcmp(const char * cs,const char * ct)
+ {
+ register int __res ;
+ __asm__("cld\n"
+@@ -158,7 +158,7 @@ __asm__("cld\n\t"
+ return __res;
+ }
+ 
+-extern inline int strspn(const char * cs, const char * ct)
++static inline int strspn(const char * cs, const char * ct)
+ {
+ register char * __res;
+ __asm__("cld\n\t"
+@@ -182,7 +182,7 @@ __asm__("cld\n\t"
+ return __res-cs;
+ }
+ 
+-extern inline int strcspn(const char * cs, const char * ct)
++static inline int strcspn(const char * cs, const char * ct)
+ {
+ register char * __res;
+ __asm__("cld\n\t"
+@@ -206,7 +206,7 @@ __asm__("cld\n\t"
+ return __res-cs;
+ }
+ 
+-extern inline char * strpbrk(const char * cs,const char * ct)
++static inline char * strpbrk(const char * cs,const char * ct)
+ {
+ register char * __res ;
+ __asm__("cld\n\t"
+@@ -233,7 +233,7 @@ __asm__("cld\n\t"
+ return __res;
+ }
+ 
+-extern inline char * strstr(const char * cs,const char * ct)
++static inline char * strstr(const char * cs,const char * ct)
+ {
+ register char * __res ;
+ __asm__("cld\n\t" \
+@@ -260,7 +260,7 @@ __asm__("cld\n\t" \
+ return __res;
+ }
+ 
+-extern inline int strlen(const char * s)
++static inline int strlen(const char * s)
+ {
+ register int __res ;
+ __asm__("cld\n\t"
+@@ -274,7 +274,7 @@ return __res;
+ 
+ extern char * ___strtok;
+ 
+-extern inline char * strtok(char * s,const char * ct)
++static inline char * strtok(char * s,const char * ct)
+ {
+ register char * __res ;
+ __asm__("testl %1,%1\n\t"
+@@ -338,7 +338,7 @@ return __res;
+  * inline ... it can not be called by other functions in another files.
+  */
+ 
+-extern inline void * memcpy(void * dest,const void * src, int n)
++static inline void * memcpy(void * dest,const void * src, int n)
+ {
+ __asm__ ("cld\n\t"
+ 	"rep\n\t"
+@@ -348,7 +348,7 @@ __asm__ ("cld\n\t"
+ return dest;
+ }
+ 
+-extern inline void * memmove(void * dest,const void * src, int n)
++static inline void * memmove(void * dest,const void * src, int n)
+ {
+ if (dest<src)
+ __asm__("cld\n\t"
+@@ -381,7 +381,7 @@ __asm__("cld\n\t"
+ return __res;
+ }
+ 
+-extern inline void * memchr(const void * cs,char c,int count)
++static inline void * memchr(const void * cs,char c,int count)
+ {
+ register void * __res ;
+ if (!count)
+diff --git a/linux-0.11/init/main.c b/linux-0.11/init/main.c
+index 8660535..493e5f1 100644
+--- a/linux-0.11/init/main.c
++++ b/linux-0.11/init/main.c
+@@ -137,7 +137,7 @@ void main(void)		/* This really IS void, no error here. */
+ 	hd_init();
+ 	floppy_init();
+ 	sti();
+-	panic(""); 
++	/* panic(""); */
+ 	move_to_user_mode();
+ 	if (!fork()) {		/* we count on this going ok */
+ 		init();
+@@ -201,6 +201,7 @@ void init(void)
+ 			(void) open("/dev/tty0",O_RDWR,0);
+ 			(void) dup(0);
+ 			(void) dup(0);
++            printf("NCTU OSDI 0656017\n");
+ 			_exit(execve("/bin/sh",argv,envp));
+ 		}
+ 		while (1)
+diff --git a/linux-0.11/kernel/blk_drv/floppy.c b/linux-0.11/kernel/blk_drv/floppy.c
+index 6ca6401..f497906 100644
+--- a/linux-0.11/kernel/blk_drv/floppy.c
++++ b/linux-0.11/kernel/blk_drv/floppy.c
+@@ -266,7 +266,7 @@ static void rw_interrupt(void)
+ 	do_fd_request();
+ }
+ 
+-inline void setup_rw_floppy(void)
++static inline void setup_rw_floppy(void)
+ {
+ 	setup_DMA();
+ 	do_floppy = rw_interrupt;
+diff --git a/linux-0.11/tools/build.sh b/linux-0.11/tools/build.sh
+old mode 100644
+new mode 100755
