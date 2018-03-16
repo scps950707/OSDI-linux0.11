@@ -42,14 +42,17 @@ LIBS	=lib/lib.a
 
 all:	Image	
 
-Image: boot/bootsect boot/setup tools/system
+Image: boot/bootsect boot/setup tools/system boot/hello
 	@cp -f tools/system system.tmp
 	@strip system.tmp
 	@objcopy -O binary -R .note -R .comment system.tmp tools/kernel
-	@tools/build.sh boot/bootsect boot/setup tools/kernel Image $(ROOT_DEV)
+	@tools/build.sh boot/bootsect boot/setup tools/kernel Image boot/hello $(ROOT_DEV)
 	@rm system.tmp
 	@rm tools/kernel -f
 	@sync
+
+boot/hello: boot/hello.s
+	@make hello -C boot
 
 disk: Image
 	@dd bs=8192 if=Image of=/dev/fd0

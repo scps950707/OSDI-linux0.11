@@ -62,12 +62,40 @@ go:	mov	%cs, %ax
 	mov	%ax, %ss
 	mov	$0xFF00, %sp		# arbitrary value >>512
 
+read_option:
+    mov $0, %ah
+    int $0x16
+    cmp $0x31, %al #'1'
+    je load_setup
+    cmp $0x32, %al #'2'
+    je load_hello
+    jmp read_option
+
+
+load_hello:
+    mov	$0x0200, %bx
+    mov $0x00e0, %ax
+    mov %ax, %es            # ES:BX 0x0e0<<1+0x0200=0x1000
+	mov	$0x0000, %dx		# drive 0, head 0
+	mov	$0x0002, %cx		# sector 2, track 0
+	mov $0x0201, %ax		# service 2, nr of sectors
+    int	$0x13			    # read it
+	jnc	ok_load_hello		# ok - continue
+	mov	$0x0000, %dx
+	mov	$0x0000, %ax		# reset the diskette
+	int	$0x13
+	jmp	load_hello
+
+ok_load_hello:
+    ljmp $0x0100, $0 #Jump to hello
+
+
 # load the setup-sectors directly after the bootblock.
 # Note that 'es' is already set up.
 
 load_setup:
 	mov	$0x0000, %dx		# drive 0, head 0
-	mov	$0x0002, %cx		# sector 2, track 0
+	mov	$0x0003, %cx		# sector 3, track 0
 	mov	$0x0200, %bx		# address = 512, in INITSEG
 	.equ    AX, 0x0200+SETUPLEN
 	mov     $AX, %ax		# service 2, nr of sectors
@@ -147,7 +175,7 @@ root_defined:
 #
 # in:	es - starting address segment (normally 0x1000)
 #
-sread:	.word 1+ SETUPLEN	# sectors read of current track
+sread:	.word 2+ SETUPLEN	# sectors read of current track
 head:	.word 0			# current head
 track:	.word 0			# current track
 
